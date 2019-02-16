@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     parser.add_argument('finput',                 type=str,            help='input file containing time, flux and optional flux error')
     parser.add_argument('-b',   '--bins',         type=int,            help='number of synchronous pdf bins', default=200)
-    parser.add_argument('-t0',  '--origin',       type=float,          help='bla', default=0.0)
+    parser.add_argument('-t0',  '--origin',       type=float,          help='the zero-point of the time-series', default=0.0)
     parser.add_argument('-P',   '--period',       type=float,          help='period of the synchronous signal', default=1.0)
     parser.add_argument('-l',   '--logfile',      type=str,            help='log file to send output to instead of screen', default=None)
     parser.add_argument('-eta', '--tolerance',    type=float,          help='tolerance for convergence', default=1e-8)
