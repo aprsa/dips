@@ -71,9 +71,9 @@ if __name__ == "__main__":
     parser.add_argument(        '--disable-mp',    action='store_true', help='disable multiprocessing (force serial computation)', default=False)
     parser.add_argument(        '--initial-pdf',   type=str,            help='choice of pdf initialization [\'flat\', \'mean\', \'median\', \'random\', or external filename]', default='median')
     parser.add_argument(        '--jitter',        type=float,          help='add jitter to the computed gradients', default=0.0)
+    parser.add_argument(        '--output-prefix', type=str,            help='filename prefix for saving results', default=None)
     parser.add_argument(        '--save-interim',  type=int,            help='save interim solutions every N iterations', default=0)
     parser.add_argument(        '--yonly',         action='store_true', help='use only y-distance instead of full euclidian distance', default=False)
-    parser.add_argument(        '--output-prefix', type=str,            help='filename prefix for saving results', default=None)
 
     args = parser.parse_args()
 
@@ -178,10 +178,6 @@ if __name__ == "__main__":
                 slopes = np.array(pool.starmap(slope, zip([ranges]*bins, [pdf]*bins, range(bins), [args.difference]*bins, [t]*bins, [O]*bins, [args.origin]*bins, [args.period]*bins, [args.yonly]*bins, [args.jitter]*bins)))
 
         mean_slope = np.abs(slopes).mean()
-
-
-    print('# ----- convergence reached -----')
-    print('# iteration %4d: l=%f, ls=%f, diff=%e, xi=%e, slope=%e' % (i, l1, synclength(pdf), l0-l1, xi, mean_slope))
 
     # mpl.rcParams['font.size'] = 24
 
