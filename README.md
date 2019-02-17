@@ -49,6 +49,7 @@ The arguments are summarized in the table below.
 | --initial-pdf | choice of pdf initialization ('flat', 'mean', 'median', 'random', or external filename) | str | 'median' |
 | --jitter JITTER | add jitter to the computed gradients | float | 0.0 |
 | --output_prefix PREFIX | filename prefix for saving results (PREFIX.signal, .trend, .ranges) | str | finput |
+| --renormalize | force pdf normalization to 1 after every iteration | bool | False |
 | --save-interim STEP | save intering solutions every STEP iterations | int | 0 |
 | --yonly | use only y-distance instead of full euclidian distance | bool | False |
 

@@ -72,6 +72,7 @@ if __name__ == "__main__":
     parser.add_argument(        '--initial-pdf',   type=str,            help='choice of pdf initialization [\'flat\', \'mean\', \'median\', \'random\', or external filename]', default='median')
     parser.add_argument(        '--jitter',        type=float,          help='add jitter to the computed gradients', default=0.0)
     parser.add_argument(        '--output-prefix', type=str,            help='filename prefix for saving results', default=None)
+    parser.add_argument(        '--renormalize',   action='store_true', help='force pdf normalization to 1 after every iteration', default=False)
     parser.add_argument(        '--save-interim',  type=int,            help='save interim solutions every N iterations', default=0)
     parser.add_argument(        '--yonly',         action='store_true', help='use only y-distance instead of full euclidian distance', default=False)
 
@@ -144,6 +145,7 @@ if __name__ == "__main__":
     log.write('#   attenuation (af): %6.2e\n' % args.attenuation)
     log.write('#   yonly:            %s\n'    % args.yonly)
     log.write('#   slope jitter:     %2.2f\n' % args.jitter)
+    log.write('#   renormalize:      %s\n'    % args.renormalize)
     log.write('# \n')
 
     i = 0
@@ -159,12 +161,14 @@ if __name__ == "__main__":
     while xi*mean_slope > args.tolerance:
         l0 = l1
         while True:
-            steps = -slopes*xi
+            steps = -1.*slopes*xi
             l1 = length(t, O - unfold(t, args.origin, args.period, ranges, pdf+steps), yonly=args.yonly)
             if l1 > l0:
                 xi *= args.attenuation
             else:
                 pdf += steps
+                if args.renormalize:
+                    pdf /= pdf.mean()
                 break
 
         i += 1
