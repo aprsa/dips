@@ -109,8 +109,10 @@ if __name__ == "__main__":
     elif args.initial_pdf == 'random':
         pdf = np.random.normal(1.0, 0.1, bins)
     else:
+        log.write('# initial pdf source: %s\n' % args.initial_pdf)
         pdf = np.loadtxt(args.initial_pdf, usecols=(1,))
         if len(pdf) != bins:
+            log.write('#   rebinning the input pdf from %d to %d\n' % (len(pdf), bins))
             r = np.linspace(0, 1, len(pdf)+1)
             pdf = np.interp((ranges[1:]+ranges[:-1])/2, (r[1:]+r[:-1])/2, pdf)
 
@@ -122,8 +124,7 @@ if __name__ == "__main__":
     # plt.bar(0.5*(ranges[:-1]+ranges[1:]), pdf, width=1./bins, color='yellow', edgecolor='black', zorder=10, alpha=0.4)
     # plt.show()
 
-    log.write('# number of pdf bins: %d\n' % bins)
-    log.write('# initial pdf source: %s\n' % args.initial_pdf)
+    log.write('# number of requested pdf bins: %d\n' % bins)
 
     nelems_per_bin, _ = np.histogram(fold(t, args.origin, args.period), bins=bins)
     log.write('# number of observations per bin:\n')
