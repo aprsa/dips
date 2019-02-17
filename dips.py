@@ -210,5 +210,5 @@ if __name__ == "__main__":
     np.savetxt('%s.signal' % (args.finput), np.vstack((0.5*(ranges[:-1]+ranges[1:]), pdf)).T)
     np.savetxt('%s.trend' % (args.finput), np.vstack((t, O-unfold(t, args.origin, args.period, ranges, pdf))).T)
 
-    if logfile is not None:
+    if args.logfile is not None:
         log.close()
