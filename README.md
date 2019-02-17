@@ -48,6 +48,7 @@ The arguments are summarized in the table below.
 | --disable-mp | disable multiprocessing (force serial computation) | bool | False |
 | --initial-pdf | choice of pdf initialization ('flat', 'mean', 'median', 'random', or external filename) | str | 'median' |
 | --jitter JITTER | add jitter to the computed gradients | float | 0.0 |
+| --output_prefix PREFIX | filename prefix for saving results (PREFIX.signal, .trend, .ranges) | str | finput |
 | --save-interim STEP | save intering solutions every STEP iterations | int | 0 |
 | --yonly | use only y-distance instead of full euclidian distance | bool | False |
 

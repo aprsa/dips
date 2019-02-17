@@ -58,21 +58,22 @@ def slope(ranges, pdf, k, dxk, t, O, t0, P, yonly=False, jitter=0):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('finput',                 type=str,            help='input file containing time, flux and optional flux error')
-    parser.add_argument('-b',   '--bins',         type=int,            help='number of synchronous pdf bins', default=200)
-    parser.add_argument('-t0',  '--origin',       type=float,          help='the zero-point of the time-series', default=0.0)
-    parser.add_argument('-P',   '--period',       type=float,          help='period of the synchronous signal', default=1.0)
-    parser.add_argument('-l',   '--logfile',      type=str,            help='log file to send output to instead of screen', default=None)
-    parser.add_argument('-eta', '--tolerance',    type=float,          help='tolerance for convergence', default=1e-8)
-    parser.add_argument('-dxk', '--difference',   type=float,          help='finite difference size', default=2e-5)
-    parser.add_argument('-xi',  '--step-size',    type=float,          help='initial down-step multiplier', default=1e-3)
-    parser.add_argument('-af',  '--attenuation',  type=float,          help='attenuation factor for xi', default=0.9)
-    parser.add_argument(        '--cols',         type=int, nargs='+', help='a list of input columns to be parsed, starting from 0', default=[0, 1])
-    parser.add_argument(        '--disable-mp',   action='store_true', help='disable multiprocessing (force serial computation)', default=False)
-    parser.add_argument(        '--initial-pdf',  type=str,            help='choice of pdf initialization [\'flat\', \'mean\', \'median\', \'random\', or external filename]', default='median')
-    parser.add_argument(        '--jitter',       type=float,          help='add jitter to the computed gradients', default=0.0)
-    parser.add_argument(        '--save-interim', type=int,            help='save interim solutions every N iterations', default=0)
-    parser.add_argument(        '--yonly',        action='store_true', help='use only y-distance instead of full euclidian distance', default=False)
+    parser.add_argument('finput',                  type=str,            help='input file containing time, flux and optional flux error')
+    parser.add_argument('-b',   '--bins',          type=int,            help='number of synchronous pdf bins', default=200)
+    parser.add_argument('-t0',  '--origin',        type=float,          help='the zero-point of the time-series', default=0.0)
+    parser.add_argument('-P',   '--period',        type=float,          help='period of the synchronous signal', default=1.0)
+    parser.add_argument('-l',   '--logfile',       type=str,            help='log file to send output to instead of screen', default=None)
+    parser.add_argument('-eta', '--tolerance',     type=float,          help='tolerance for convergence', default=1e-8)
+    parser.add_argument('-dxk', '--difference',    type=float,          help='finite difference size', default=2e-5)
+    parser.add_argument('-xi',  '--step-size',     type=float,          help='initial down-step multiplier', default=1e-3)
+    parser.add_argument('-af',  '--attenuation',   type=float,          help='attenuation factor for xi', default=0.9)
+    parser.add_argument(        '--cols',          type=int, nargs='+', help='a list of input columns to be parsed, starting from 0', default=[0, 1])
+    parser.add_argument(        '--disable-mp',    action='store_true', help='disable multiprocessing (force serial computation)', default=False)
+    parser.add_argument(        '--initial-pdf',   type=str,            help='choice of pdf initialization [\'flat\', \'mean\', \'median\', \'random\', or external filename]', default='median')
+    parser.add_argument(        '--jitter',        type=float,          help='add jitter to the computed gradients', default=0.0)
+    parser.add_argument(        '--save-interim',  type=int,            help='save interim solutions every N iterations', default=0)
+    parser.add_argument(        '--yonly',         action='store_true', help='use only y-distance instead of full euclidian distance', default=False)
+    parser.add_argument(        '--output-prefix', type=str,            help='filename prefix for saving results', default=None)
 
     args = parser.parse_args()
 
@@ -206,9 +207,11 @@ if __name__ == "__main__":
     # plt.savefig('dps_2445134.pdf')
     # plt.show()
 
-    np.savetxt('%s.ranges' % (args.finput), ranges)
-    np.savetxt('%s.signal' % (args.finput), np.vstack((0.5*(ranges[:-1]+ranges[1:]), pdf)).T)
-    np.savetxt('%s.trend' % (args.finput), np.vstack((t, O-unfold(t, args.origin, args.period, ranges, pdf))).T)
+    prefix = args.finput if args.output_prefix is None else args.output_prefix
+
+    np.savetxt('%s.ranges' % (prefix), ranges)
+    np.savetxt('%s.signal' % (prefix), np.vstack((0.5*(ranges[:-1]+ranges[1:]), pdf)).T)
+    np.savetxt('%s.trend' % (prefix), np.vstack((t, O-unfold(t, args.origin, args.period, ranges, pdf))).T)
 
     if args.logfile is not None:
         log.close()
