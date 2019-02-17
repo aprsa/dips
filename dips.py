@@ -110,6 +110,9 @@ if __name__ == "__main__":
         pdf = np.random.normal(1.0, 0.1, bins)
     else:
         pdf = np.loadtxt(args.initial_pdf, usecols=(1,))
+        if len(pdf) != bins:
+            r = np.linspace(0, 1, len(pdf)+1)
+            pdf = np.interp((ranges[1:]+ranges[:-1])/2, (r[1:]+r[:-1])/2, pdf)
 
     # plt.figure(figsize=(16,6))
     # plt.ylim(0.9, 1.01)
