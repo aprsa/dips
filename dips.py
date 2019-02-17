@@ -108,7 +108,7 @@ if __name__ == "__main__":
     elif args.initial_pdf == 'random':
         pdf = np.random.normal(1.0, 0.1, bins)
     else:
-        pdf = np.loadtxt(initial_pdf, usecols=(1,))
+        pdf = np.loadtxt(args.initial_pdf, usecols=(1,))
 
     # plt.figure(figsize=(16,6))
     # plt.ylim(0.9, 1.01)
@@ -125,7 +125,8 @@ if __name__ == "__main__":
     log.write('# number of observations per bin:\n')
     log.write('#   min: %d   max: %d   mean: %d\n# \n' % (nelems_per_bin.min(), nelems_per_bin.max(), nelems_per_bin.mean()))
 
-    log.write('# dips running on %d %s (multiprocessing %s)\n# \n' % (mp.cpu_count(), 'core' if mp.cpu_count() == 1 else 'cores', 'off' if args.disable_mp else 'on'))
+    nprocs = 1 if args.disable_mp else mp.cpu_count()
+    log.write('# dips running on %d %s (multiprocessing %s)\n# \n' % (nprocs, 'core' if nprocs == 1 else 'cores', 'off' if args.disable_mp else 'on'))
 
     Y = O - unfold(t, args.origin, args.period, ranges, pdf)
     log.write('# original timeseries length:  %f\n' % length(t, O, args.yonly))
