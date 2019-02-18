@@ -21,25 +21,12 @@ def length(t, y, yonly=False):
         return np.abs(y[1:]-y[:-1]).sum()
     else:
         return ( ( (y[1:]-y[:-1])**2 + (t[1:]-t[:-1])**2 )**0.5 ).sum()
-    # l = 0
-    # for k in range(len(t)-1):
-    #     if yonly:
-    #         l += abs(y[k+1]-y[k])
-    #     else:
-    #         l += ( (y[k+1]-y[k])**2 + (t[k+1]-t[k])**2 )**0.5
-    # return l
 
 def synclength(pdf, yonly=False):
     if yonly:
         return np.abs(pdf[1:]-pdf[:-1]).sum()
     else:
         return ( ( (pdf[1:]-pdf[:-1])**2 + (1./len(pdf))**2 )**0.5 ).sum()
-    # for k in range(len(pdf)-1):
-    #     if yonly:
-    #         l += abs(pdf[k+1]-pdf[k])
-    #     else:
-    #         l += ( (pdf[k+1]-pdf[k])**2 + (1./len(pdf))**2 )**0.5
-    # return l
 
 def slope(k):
     # we assume POSIX compliance here so that main module memory is shared.
@@ -70,6 +57,7 @@ if __name__ == "__main__":
     parser.add_argument('-dxk', '--difference',    type=float,          help='finite difference size', default=2e-5)
     parser.add_argument('-xi',  '--step-size',     type=float,          help='initial down-step multiplier', default=1e-3)
     parser.add_argument('-af',  '--attenuation',   type=float,          help='attenuation factor for xi', default=0.9)
+    parser.add_argument(        '--allow-upstep',  action='store_true', help='allow step size to increase during convergence', default=False)
     parser.add_argument(        '--cols',          type=int, nargs='+', help='a list of input columns to be parsed, starting from 0', default=[0, 1])
     parser.add_argument(        '--disable-mp',    action='store_true', help='disable multiprocessing (force serial computation)', default=False)
     parser.add_argument(        '--initial-pdf',   type=str,            help='choice of pdf initialization [\'flat\', \'mean\', \'median\', \'random\', or external filename]', default='median')
@@ -118,7 +106,7 @@ if __name__ == "__main__":
     elif args.initial_pdf == 'median':
         pdf = hstats(x=fold(t, t0, P), values=O, statistic='median', bins=bins, range=(0, 1))[0]
     elif args.initial_pdf == 'random':
-        pdf = np.random.normal(1.0, 0.1, bins)
+        pdf = np.random.normal(np.mean(O), np.std(O), bins)
     else:
         log.write('# initial pdf source: %s\n' % args.initial_pdf)
         pdf = np.loadtxt(args.initial_pdf, usecols=(1,))
@@ -180,6 +168,8 @@ if __name__ == "__main__":
                 pdf += steps
                 if args.renormalize:
                     pdf /= pdf.mean()
+                if args.allow_upstep:
+                    xi /= args.attenuation
                 break
 
         i += 1
