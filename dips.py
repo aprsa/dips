@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import os
 import sys
 import numpy as np
 import argparse
@@ -40,18 +41,20 @@ def synclength(pdf, yonly=False):
     #         l += ( (pdf[k+1]-pdf[k])**2 + (1./len(pdf))**2 )**0.5
     # return l
 
-def slope(ranges, pdf, k, dxk, t, O, t0, P, yonly=False, jitter=0):
-    pdf[k] -= dxk/2
-    y = O - unfold(t, t0, P, ranges, pdf)
-    l1 = length(t, y, yonly)
-    pdf[k] += dxk
-    y = O - unfold(t, t0, P, ranges, pdf)
-    l2 = length(t, y, yonly)
-    if jitter == 0:
-        return (l2-l1)/dxk
-    else:
-        return np.random.normal((l2-l1)/dxk, jitter*np.abs((l2-l1)/dxk))
+def slope(k):
+    # we assume POSIX compliance here so that main module memory is shared.
 
+    x = pdf.copy()
+    x[k] -= args.difference/2
+    y = O - unfold(t, t0, P, ranges, x)
+    l1 = length(t, y, args.yonly)
+    x[k] += args.difference
+    y = O - unfold(t, t0, P, ranges, x)
+    l2 = length(t, y, args.yonly)
+    if args.jitter == 0:
+        return (l2-l1)/args.difference
+    else:
+        return np.random.normal((l2-l1)/args.difference, args.jitter*np.abs((l2-l1)/args.difference))
 
 #mpl.rcParams['font.size'] = 18
 
@@ -81,6 +84,8 @@ if __name__ == "__main__":
     # these are used a lot so assign local variables to them
     bins = args.bins
     xi = args.step_size
+    t0 = args.origin
+    P = args.period
 
     if args.logfile is not None:
         log = open(args.logfile, 'w')
@@ -89,6 +94,11 @@ if __name__ == "__main__":
 
     log.write('# Issued command:\n')
     log.write('#   %s\n# \n' % ' '.join(sys.argv))
+
+    if os.name != 'posix':
+        # as of right now this code won't run on non-posix systems.
+        sys.stderr('dips does not run on a non-POSIX system; if you would like\nto run dips on your architecture, please open a ticket on https://github.com/aprsa/dips.\n')
+        exit()
 
     if len(args.cols) == 2:
         t, O = np.loadtxt(args.finput, usecols=args.cols, unpack=True)
@@ -104,9 +114,9 @@ if __name__ == "__main__":
     if args.initial_pdf == 'flat':
         pdf = np.ones(bins)
     elif args.initial_pdf == 'mean':
-        pdf = hstats(x=fold(t, args.origin, args.period), values=O, statistic='mean', bins=bins, range=(0, 1))[0]
+        pdf = hstats(x=fold(t, t0, P), values=O, statistic='mean', bins=bins, range=(0, 1))[0]
     elif args.initial_pdf == 'median':
-        pdf = hstats(x=fold(t, args.origin, args.period), values=O, statistic='median', bins=bins, range=(0, 1))[0]
+        pdf = hstats(x=fold(t, t0, P), values=O, statistic='median', bins=bins, range=(0, 1))[0]
     elif args.initial_pdf == 'random':
         pdf = np.random.normal(1.0, 0.1, bins)
     else:
@@ -127,14 +137,14 @@ if __name__ == "__main__":
 
     log.write('# number of requested pdf bins: %d\n' % bins)
 
-    nelems_per_bin, _ = np.histogram(fold(t, args.origin, args.period), bins=bins)
+    nelems_per_bin, _ = np.histogram(fold(t, t0, P), bins=bins)
     log.write('# number of observations per bin:\n')
     log.write('#   min: %d   max: %d   mean: %d\n# \n' % (nelems_per_bin.min(), nelems_per_bin.max(), nelems_per_bin.mean()))
 
     nprocs = 1 if args.disable_mp else mp.cpu_count()
     log.write('# dips running on %d %s (multiprocessing %s)\n# \n' % (nprocs, 'core' if nprocs == 1 else 'cores', 'off' if args.disable_mp else 'on'))
 
-    Y = O - unfold(t, args.origin, args.period, ranges, pdf)
+    Y = O - unfold(t, t0, P, ranges, pdf)
     log.write('# original timeseries length:  %f\n' % length(t, O, args.yonly))
     log.write('# initial asynchronous length: %f\n# \n' % length(t, Y, args.yonly))
 
@@ -149,20 +159,21 @@ if __name__ == "__main__":
     log.write('# \n')
 
     i = 0
-    l1 = length(t, O - unfold(t, args.origin, args.period, ranges, pdf), yonly=args.yonly)
+    l1 = length(t, O - unfold(t, t0, P, ranges, pdf), yonly=args.yonly)
     if args.disable_mp:
-        slopes = np.array([slope(ranges, pdf, k, args.difference, t, O, args.origin, args.period, args.yonly, args.jitter) for k in range(bins)])
+        slopes = np.array([slope(k) for k in range(bins)])
     else:
         with mp.Pool() as pool:
-            slopes = np.array(pool.starmap(slope, zip([ranges]*bins, [pdf]*bins, range(bins), [args.difference]*bins, [t]*bins, [O]*bins, [args.origin]*bins, [args.period]*bins, [args.yonly]*bins, [args.jitter]*bins)))
+            slopes = np.array(pool.map(slope, range(bins)))
+            # slopes = np.array(pool.starmap(slope, zip([mp_ranges]*bins, [pdf]*bins, range(bins), [args.difference]*bins, [mp_t]*bins, [mp_O]*bins, [mp_t0]*bins, [mp_P]*bins, [args.yonly]*bins, [args.jitter]*bins)))
     mean_slope = np.abs(slopes).mean()
 
     log.write('# %3s %14s %12s %14s %14s %14s\n' % ('it', 'async_length', 'sync_length', 'difference', 'step_size', 'mean_slope'))
     while xi*mean_slope > args.tolerance:
         l0 = l1
         while True:
-            steps = -1.*slopes*xi
-            l1 = length(t, O - unfold(t, args.origin, args.period, ranges, pdf+steps), yonly=args.yonly)
+            steps = -xi*slopes
+            l1 = length(t, O - unfold(t, t0, P, ranges, pdf+steps), yonly=args.yonly)
             if l1 > l0:
                 xi *= args.attenuation
             else:
@@ -177,13 +188,13 @@ if __name__ == "__main__":
         if args.save_interim > 0 and i % args.save_interim == 0:
             np.savetxt('%s.%04d.ranges' % (args.finput, i), ranges)
             np.savetxt('%s.%04d.signal' % (args.finput, i), np.vstack((0.5*(ranges[:-1]+ranges[1:]), pdf)).T)
-            np.savetxt('%s.%04d.trend'  % (args.finput, i), np.vstack((t, O-unfold(t, args.origin, args.period, ranges, pdf))).T)
+            np.savetxt('%s.%04d.trend'  % (args.finput, i), np.vstack((t, O-unfold(t, t0, P, ranges, pdf))).T)
 
         if args.disable_mp:
-            slopes = np.array([slope(ranges, pdf, k, args.difference, t, O, args.origin, args.period, args.yonly, args.jitter) for k in range(bins)])
+            slopes = np.array([slope(k) for k in range(bins)])
         else:
             with mp.Pool() as pool:
-                slopes = np.array(pool.starmap(slope, zip([ranges]*bins, [pdf]*bins, range(bins), [args.difference]*bins, [t]*bins, [O]*bins, [args.origin]*bins, [args.period]*bins, [args.yonly]*bins, [args.jitter]*bins)))
+                slopes = np.array(pool.map(slope, range(bins)))
 
         mean_slope = np.abs(slopes).mean()
 
@@ -215,7 +226,7 @@ if __name__ == "__main__":
 
     np.savetxt('%s.ranges' % (prefix), ranges)
     np.savetxt('%s.signal' % (prefix), np.vstack((0.5*(ranges[:-1]+ranges[1:]), pdf)).T)
-    np.savetxt('%s.trend' % (prefix), np.vstack((t, O-unfold(t, args.origin, args.period, ranges, pdf))).T)
+    np.savetxt('%s.trend' % (prefix), np.vstack((t, O-unfold(t, t0, P, ranges, pdf))).T)
 
     if args.logfile is not None:
         log.close()
