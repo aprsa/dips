@@ -9,6 +9,7 @@ Pre-requisites
 
 To run _dips_, you will need:
 
+* a POSIX-compliant system (linux, macos)
 * python 3
 * numpy
 * scipy
