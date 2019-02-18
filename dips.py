@@ -141,6 +141,7 @@ if __name__ == "__main__":
     log.write('#   difference (dxk): %6.2e\n' % args.difference)
     log.write('#   step size (xi):   %6.2e\n' % args.step_size)
     log.write('#   attenuation (af): %6.2e\n' % args.attenuation)
+    log.write('#   up-step allowed:  %s\n'    % args.allow_upstep)
     log.write('#   yonly:            %s\n'    % args.yonly)
     log.write('#   slope jitter:     %2.2f\n' % args.jitter)
     log.write('#   renormalize:      %s\n'    % args.renormalize)
@@ -159,11 +160,13 @@ if __name__ == "__main__":
     log.write('# %3s %14s %12s %14s %14s %14s\n' % ('it', 'async_length', 'sync_length', 'difference', 'step_size', 'mean_slope'))
     while xi*mean_slope > args.tolerance:
         l0 = l1
+        safety_counter = 0
         while True:
             steps = -xi*slopes
             l1 = length(t, O - unfold(t, t0, P, ranges, pdf+steps), yonly=args.yonly)
-            if l1 > l0:
+            if l1 > l0 and safety_counter < 1000:
                 xi *= args.attenuation
+                safety_counter += 1
             else:
                 pdf += steps
                 if args.renormalize:
