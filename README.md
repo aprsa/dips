@@ -48,6 +48,7 @@ The arguments are summarized in the table below.
 | --cols COL1 COL2 \[COL3\] | a list of input columns to be parsed, starting from 0 | list of ints | 0 1 |
 | --disable-mp | disable multiprocessing (force serial computation) | bool | False |
 | --initial-pdf | choice of pdf initialization ('flat', 'mean', 'median', 'random', or external filename) | str | 'median' |
+| --interim-prefix | filename prefix for interim results | str | finput |
 | --output_prefix PREFIX | filename prefix for saving results (PREFIX.signal, .trend, .ranges) | str | finput |
 | --renormalize | force pdf normalization to 1 after every iteration | bool | False |
 | --save-interim STEP | save intering solutions every STEP iterations | int | 0 |

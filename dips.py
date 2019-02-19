@@ -84,6 +84,9 @@ class Dips:
         else:
             log = sys.stdout
 
+        if self.args['save_interim'] > 0:
+            interim_prefix = self.args['finput'] if self.args['interim_prefix'] is None else self.args['interim_prefix']
+
         log.write('# %3s %14s %12s %14s %14s %14s\n' % ('it', 'async_length', 'sync_length', 'difference', 'step_size', 'mean_slope'))
 
         # starting iterations
@@ -117,9 +120,9 @@ class Dips:
             log.write('%5d %14.8f %12.8f %14.8e %14.8e %14.8e\n' % (i, l1, self.synclength(self.pdf), l0-l1, self.xi, mean_slope))
 
             if self.args['save_interim'] > 0 and i % self.args['save_interim'] == 0:
-                np.savetxt('%s.%04d.ranges' % (self.args['finput'], i), self.ranges)
-                np.savetxt('%s.%04d.signal' % (self.args['finput'], i), np.vstack((0.5*(self.ranges[:-1]+self.ranges[1:]), self.pdf)).T)
-                np.savetxt('%s.%04d.trend'  % (self.args['finput'], i), np.vstack((self.data[:,0], self.data[:,1]-self.unfold(self.pdf))).T)
+                np.savetxt('%s.%05d.ranges' % (interim_prefix, i), self.ranges)
+                np.savetxt('%s.%05d.signal' % (interim_prefix, i), np.vstack((0.5*(self.ranges[:-1]+self.ranges[1:]), self.pdf)).T)
+                np.savetxt('%s.%05d.trend'  % (interim_prefix, i), np.vstack((self.data[:,0], self.data[:,1]-self.unfold(self.pdf))).T)
 
             if self.args['disable_mp']:
                 slopes = np.array([self.slope(k) for k in range(self.args['bins'])])
@@ -162,41 +165,40 @@ class Dips:
         l1 = self.length(self.data[:,0], self.data[:,1] - self.unfold(x))
         x[k] += self.args['difference']
         l2 = self.length(self.data[:,0], self.data[:,1] - self.unfold(x))
-        return (l2-l1)/self.args['difference']
-        # if args['jitter'] == 0:
-        # else:
-            # return np.random.normal((l2-l1)/args['difference'], args['jitter']*np.abs((l2-l1)/args['difference']))
+        if self.args['jitter'] == 0:
+            return (l2-l1)/self.args['difference']
+        else:
+            return np.random.normal((l2-l1)/self.args['difference'], self.args['jitter']*np.abs((l2-l1)/self.args['difference']))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('finput',                  type=str,            help='input file containing time, flux and optional flux error')
-    parser.add_argument('-b',   '--bins',          type=int,            help='number of synchronous pdf bins', default=200)
-    parser.add_argument('-t0',  '--origin',        type=float,          help='the zero-point of the time-series', default=0.0)
-    parser.add_argument('-P',   '--period',        type=float,          help='period of the synchronous signal', default=1.0)
-    parser.add_argument('-l',   '--logfile',       type=str,            help='log file to send output to instead of screen', default=None)
-    parser.add_argument('-eta', '--tolerance',     type=float,          help='tolerance for convergence', default=1e-8)
-    parser.add_argument('-dxk', '--difference',    type=float,          help='finite difference size', default=2e-5)
-    parser.add_argument('-xi',  '--step-size',     type=float,          help='initial down-step multiplier', default=1e-3)
-    parser.add_argument('-af',  '--attenuation',   type=float,          help='attenuation factor for xi', default=0.9)
-    parser.add_argument(        '--allow-upstep',  action='store_true', help='allow step size to increase during convergence', default=False)
-    parser.add_argument(        '--cols',          type=int, nargs='+', help='a list of input columns to be parsed, starting from 0', default=[0, 1])
-    parser.add_argument(        '--disable-mp',    action='store_true', help='disable multiprocessing (force serial computation)', default=False)
-    parser.add_argument(        '--initial-pdf',   type=str,            help='choice of pdf initialization [\'flat\', \'mean\', \'median\', \'random\', or external filename]', default='median')
-    parser.add_argument(        '--jitter',        type=float,          help='add jitter to the computed gradients', default=0.0)
-    parser.add_argument(        '--output-prefix', type=str,            help='filename prefix for saving results', default=None)
-    parser.add_argument(        '--renormalize',   action='store_true', help='force pdf normalization to 1 after every iteration', default=False)
-    parser.add_argument(        '--save-interim',  type=int,            help='save interim solutions every N iterations', default=0)
-    parser.add_argument(        '--yonly',         action='store_true', help='use only y-distance instead of full euclidian distance', default=False)
+    parser.add_argument('finput',                   type=str,            help='input file containing time, flux and optional flux error')
+    parser.add_argument('-b',   '--bins',           type=int,            help='number of synchronous pdf bins', default=200)
+    parser.add_argument('-t0',  '--origin',         type=float,          help='the zero-point of the time-series', default=0.0)
+    parser.add_argument('-P',   '--period',         type=float,          help='period of the synchronous signal', default=1.0)
+    parser.add_argument('-l',   '--logfile',        type=str,            help='log file to send output to instead of screen', default=None)
+    parser.add_argument('-eta', '--tolerance',      type=float,          help='tolerance for convergence', default=1e-8)
+    parser.add_argument('-dxk', '--difference',     type=float,          help='finite difference size', default=2e-5)
+    parser.add_argument('-xi',  '--step-size',      type=float,          help='initial down-step multiplier', default=1e-3)
+    parser.add_argument('-af',  '--attenuation',    type=float,          help='attenuation factor for xi', default=0.9)
+    parser.add_argument(        '--allow-upstep',   action='store_true', help='allow step size to increase during convergence', default=False)
+    parser.add_argument(        '--cols',           type=int, nargs='+', help='a list of input columns to be parsed, starting from 0', default=[0, 1])
+    parser.add_argument(        '--disable-mp',     action='store_true', help='disable multiprocessing (force serial computation)', default=False)
+    parser.add_argument(        '--initial-pdf',    type=str,            help='choice of pdf initialization [\'flat\', \'mean\', \'median\', \'random\', or external filename]', default='median')
+    parser.add_argument(        '--interim-prefix', type=str,            help='filename prefix for interim results', default=None)
+    parser.add_argument(        '--jitter',         type=float,          help='add jitter to the computed gradients', default=0.0)
+    parser.add_argument(        '--output-prefix',  type=str,            help='filename prefix for saving results', default=None)
+    parser.add_argument(        '--renormalize',    action='store_true', help='force pdf normalization to 1 after every iteration', default=False)
+    parser.add_argument(        '--save-interim',   type=int,            help='save interim solutions every N iterations', default=0)
+    parser.add_argument(        '--yonly',          action='store_true', help='use only y-distance instead of full euclidian distance', default=False)
 
     cmdargs = parser.parse_args()
     if len(cmdargs.cols) < 2 or len(cmdargs.cols) > 3:
         raise argparse.ArgumentTypeError('only 2 or 3 columns can be passed to the --cols parameter.')
 
-    # cmdargs is a Namespace that cannot be serialized; we need a dict instead.
     dips = Dips(vars(cmdargs))
     dips.run()
-    exit()
 
 
     # plt.figure(figsize=(16,6))
