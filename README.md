@@ -16,11 +16,9 @@ To run _dips_, you will need:
 Installation
 ------------
 
-Given the simplicity of _dips_ (a single source file), there is no dedicated install script. It may be added in the future though if there is sufficient interest.
+The `dips` program is available from pip. To install, run `pip3 install dips` for a local install, or `sudo pip3 install dips` for a global install.
 
-To install _dips_ locally, download `dips.py` in a directory of your choice, make it executable by issuing `chmod 755 dips.py` and run it with `./dips.py` from that directory.
-
-To install _dips_ globally, copy `dips.py` to a directory in the system path, i.e. `/usr/local/bin`, make it executable by issuing `chmod 755 dips.py` and run it with `dips.py` from anywhere.
+If you prefer to install `dips` manually, run `python3 setup.py install` in the top-level `dips` directory (local install), or `sudo python3 setup.py install` in the top-level `dips` directory (global install).
 
 Running _dips_
 --------------

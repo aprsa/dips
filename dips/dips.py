@@ -4,8 +4,8 @@ import os
 import sys
 import numpy as np
 import argparse
-#import matplotlib as mpl
-#import matplotlib.pyplot as plt
+# import matplotlib as mpl
+# import matplotlib.pyplot as plt
 from scipy.interpolate import InterpolatedUnivariateSpline as interp
 from scipy.stats import binned_statistic as hstats
 import multiprocessing as mp
@@ -58,6 +58,15 @@ class Dips:
 
         nprocs = 1 if args['disable_mp'] else mp.cpu_count()
         log.write('# dips running on %d %s (multiprocessing %s)\n# \n' % (nprocs, 'core' if nprocs == 1 else 'cores', 'off' if args['disable_mp'] else 'on'))
+
+        # mpl.rcParams['font.size'] = 24
+        # plt.figure(figsize=(16,6))
+        # plt.ylim(0.9, 1.01)
+        # plt.xlabel('Phase')
+        # plt.ylabel('Normalized flux')
+        # plt.plot(self.phases, self.data[:,1], 'b.')
+        # plt.bar(0.5*(self.ranges[:-1]+self.ranges[1:]), self.pdf, width=1./args['bins'], color='yellow', edgecolor='black', zorder=10, alpha=0.4)
+        # plt.show()
 
         Y = self.data[:,1] - self.unfold(self.pdf)
         log.write('# original timeseries length:  %f\n' % self.length(self.data[:,0], self.data[:,1]))
@@ -116,13 +125,13 @@ class Dips:
                         self.xi /= self.args['attenuation']
                     break
 
-            i += 1
-            log.write('%5d %14.8f %12.8f %14.8e %14.8e %14.8e\n' % (i, l1, self.synclength(self.pdf), l0-l1, self.xi, mean_slope))
-
             if self.args['save_interim'] > 0 and i % self.args['save_interim'] == 0:
                 np.savetxt('%s.%05d.ranges' % (interim_prefix, i), self.ranges)
                 np.savetxt('%s.%05d.signal' % (interim_prefix, i), np.vstack((0.5*(self.ranges[:-1]+self.ranges[1:]), self.pdf)).T)
                 np.savetxt('%s.%05d.trend'  % (interim_prefix, i), np.vstack((self.data[:,0], self.data[:,1]-self.unfold(self.pdf))).T)
+
+            i += 1
+            log.write('%5d %14.8f %12.8f %14.8e %14.8e %14.8e\n' % (i, l1, self.synclength(self.pdf), l0-l1, self.xi, mean_slope))
 
             if self.args['disable_mp']:
                 slopes = np.array([self.slope(k) for k in range(self.args['bins'])])
@@ -201,18 +210,11 @@ if __name__ == "__main__":
     dips.run()
 
 
-    # plt.figure(figsize=(16,6))
-    # plt.ylim(0.9, 1.01)
-    # plt.xlabel('Phase')
-    # plt.ylabel('Normalized flux')
-    # plt.plot(fold(t, t0, P), O, 'b.')
-    # plt.bar(0.5*(ranges[:-1]+ranges[1:]), pdf, width=1./bins, color='yellow', edgecolor='black', zorder=10, alpha=0.4)
-    # plt.show()
 
 
 
 
-    # mpl.rcParams['font.size'] = 24
+
 
     # plt.figure(figsize=(16,15))
     # plt.axes([0.1, 0.65, 0.8, 0.25])
