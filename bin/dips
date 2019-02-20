@@ -2,10 +2,12 @@
 
 import argparse
 from dips import Dips
+from dips import __version__
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument('finput',                   type=str,            help='input file containing time, flux and optional flux error')
+parser.add_argument('-V',   '--version',        action='version',    help='print dips version and exit', version='%(prog)s {version}'.format(version=__version__))
 parser.add_argument('-b',   '--bins',           type=int,            help='number of synchronous pdf bins', default=200)
 parser.add_argument('-t0',  '--origin',         type=float,          help='the zero-point of the time-series', default=0.0)
 parser.add_argument('-P',   '--period',         type=float,          help='period of the synchronous signal', default=1.0)

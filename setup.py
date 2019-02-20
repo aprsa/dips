@@ -1,11 +1,12 @@
 import setuptools
+import dips
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='dips',
-    version='0.1',
+    name=dips.__name__,
+    version=dips.__version__,
     author='Andrej Prsa',
     author_email='aprsa@villanova.edu',
     description='dips: detrending periodic signals',
@@ -14,6 +15,10 @@ setuptools.setup(
     url='https://github.com/aprsa/dips',
     packages=setuptools.find_packages(),
     scripts=['bin/dips'],
+    install_requires=[
+        'numpy',
+        'scipy',
+    ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Programming Language :: Python :: 3',

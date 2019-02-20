@@ -1,4 +1,5 @@
-# Detrending Periodic Signals (dips)
+Detrending Periodic Signals (dips)
+==================================
 
 _dips_ is an algorithm for detrending timeseries of strictly periodic signals. It does not assume any functional form for the signal or the background or the noise; it disentangles the strictly periodic component from everything else. We use it in astronomy for detrending _Kepler_, _K2_ and _TESS_ timeseries of periodic variable stars, eclipsing binary stars, exoplanets etc. The algorithm is described in detail in Prsa et al. (2019), PASP, in review -- the reference will be updated shortly.
 
@@ -34,6 +35,7 @@ The arguments are summarized in the table below.
 | Argument | Usage | Type | Default value |
 |----------|-------|------|---------------|
 | -h, --help | print out the help message and exit | n/a | n/a |
+| -V, --version | print dips version and exit | n/a | n/a |
 | -b BINS, --bins BINS | assign the number of synchronous pdf bins | int | 200 |
 | -t0 ORIGIN, --origin ORIGIN | the zero-point of the timeseries | float | 0.0 |
 | -P PERIOD, --period PERIOD | period of the synchronous signal | float | 1.0 |
