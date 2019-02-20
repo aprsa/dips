@@ -17,7 +17,7 @@ setuptools.setup(
     scripts=['bin/dips'],
     install_requires=[
         'numpy',
-        'scipy',
+        'scipy >= 0.13.0',
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
