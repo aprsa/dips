@@ -56,7 +56,7 @@ The arguments are summarized in the table below.
 
 Distributed with _dips_ (in the tarball's `examples` directory) are three example input files, `synthetic.data`, `kic3953981_sap.data` and `kic3547874_sap.data`.
 
-To run _dips_ on synthetic data (see [http://keplerEBs.villanova.edu/includes/DPS/dps_synthetic.html](here) how the data were created) by using 33 bins, per-bin means as the initial pdf, and with serial calculation (disabling multiprocessing), issue:
+To run _dips_ on synthetic data (see [here](http://keplerEBs.villanova.edu/includes/DPS/dps_synthetic.html) how the data were created) by using 33 bins, per-bin means as the initial pdf, and with serial calculation (disabling multiprocessing), issue:
 
 ```bash
 dips synthetic.data -b 33 -P 0.91 --initial-pdf mean --disable-mp
