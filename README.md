@@ -19,7 +19,7 @@ Installation
 
 The `dips` program is available from pip. To install, run `pip3 install dips` for a local install, or `sudo pip3 install dips` for a global install.
 
-If you prefer to install `dips` manually, run `python3 setup.py install` in the top-level `dips` directory (local install), or `sudo python3 setup.py install` in the top-level `dips` directory (global install).
+If you prefer to install `dips` manually, grab the tarball from github, extract it and run `python3 setup.py install` in the top-level `dips` directory (local install), or `sudo python3 setup.py install` in the top-level `dips` directory (global install).
 
 Running _dips_
 --------------
@@ -54,10 +54,24 @@ The arguments are summarized in the table below.
 | --save-interim STEP | save intering solutions every STEP iterations | int | 0 |
 | --yonly | use only y-distance instead of full euclidian distance | bool | False |
 
-Distributed with _dips_ are three example input files, `synthetic.data`, `kic2445134_sap.data` and `kic3547874_sap.data`. For example, to run _dips_ on `kic3547874_sap.data`, issue:
+Distributed with _dips_ (in the tarball's `examples` directory) are three example input files, `synthetic.data`, `kic2445134_sap.data` and `kic3547874_sap.data`.
+
+To run _dips_ on synthetic data (see [http://keplerEBs.villanova.edu/includes/DPS/dps_synthetic.html](here) how the data were created) by using 33 bins, per-bin means as the initial pdf, and with serial calculation (disabling multiprocessing), issue:
 
 ```bash
-./dips.py -t0 54989.4209 -P 19.6921722 -b 200 --cols 0 2 --yonly --initial-pdf mean kic3547874_sap.data
+dips synthetic.data -b 33 -P 0.91 --initial-pdf mean --disable-mp
 ```
 
-The values for `t0` and `P` were taken from the [Kepler EB catalog](http://keplerEBs.villanova.edu/overview/?k=3547874).
+To run _dips_ on a heartbeat star [KIC 3547874](http://keplerEBs.villanova.edu/overview/?k=3547874), using 200 bins, starting with a flat pdf, computing total length in the y-direction only, renormalizing the synchronous pdf to 1.0 after each iteration, and allowing the step size to increase, issue:
+
+```bash
+dips kic3547874_sap.data --cols 0 2 -t0 54989.4209 -P 19.6921722 -b 200 --yonly --initial-pdf flat --renormalize --allow-upstep
+```
+
+Finally, to run _dips_ on an eclipsing binary [KIC 3953981](http://keplerEBs.villanova.edu/overview/?k=3953981), using 101 bins, allowing the step size to increase, using per-bin data median as the initial pdf, renormalizing the pdf after each iteration, using only y-direction length and saving every 10th iteration, issue:
+
+```bash
+dips kic3953981_sap.data -b 101 -t0 54953.82253243 -P 0.49201716 --allow-upstep --initial-pdf median --save-interim 10 --interim-prefix eb --renormalize --yonly
+```
+
+These examples should provide a basic idea of how to invoke _dips_.
