@@ -1,4 +1,5 @@
-# Detrending Periodic Signals (dips)
+Detrending Periodic Signals (dips)
+==================================
 
 _dips_ is an algorithm for detrending timeseries of strictly periodic signals. It does not assume any functional form for the signal or the background or the noise; it disentangles the strictly periodic component from everything else. We use it in astronomy for detrending _Kepler_, _K2_ and _TESS_ timeseries of periodic variable stars, eclipsing binary stars, exoplanets etc. The algorithm is described in detail in Prsa et al. (2019), PASP, in review -- the reference will be updated shortly.
 
@@ -18,7 +19,7 @@ Installation
 
 The `dips` program is available from pip. To install, run `pip3 install dips` for a local install, or `sudo pip3 install dips` for a global install.
 
-If you prefer to install `dips` manually, run `python3 setup.py install` in the top-level `dips` directory (local install), or `sudo python3 setup.py install` in the top-level `dips` directory (global install).
+If you prefer to install `dips` manually, grab the tarball from github, extract it and run `python3 setup.py install` in the top-level `dips` directory (local install), or `sudo python3 setup.py install` in the top-level `dips` directory (global install).
 
 Running _dips_
 --------------
@@ -27,13 +28,14 @@ The _dips_ program is run from the command line. It takes a filename with the ti
 
 Run _dips_ with:
 
-`dips.py [-h] [-b BINS] [-t0 ORIGIN] [-P PERIOD] [-l LOGFILE] [-eta TOLERANCE] [-dxk DIFFERENCE] [-xi STEP_SIZE] [-af ATTENUATION] [--allow-upstep] [--cols COLS [COLS ...]] [--disable-mp] [--initial-pdf INITIAL_PDF] [--interim-prefix INTERIM_PREFIX] [--jitter JITTER] [--output-prefix OUTPUT_PREFIX] [--renormalize] [--save-interim SAVE_INTERIM] [--yonly] finput`
+`dips.py [-h] [-V] [-b BINS] [-t0 ORIGIN] [-P PERIOD] [-l LOGFILE] [-eta TOLERANCE] [-dxk DIFFERENCE] [-xi STEP_SIZE] [-af ATTENUATION] [--allow-upstep] [--cols COLS [COLS ...]] [--disable-mp] [--initial-pdf INITIAL_PDF] [--interim-prefix INTERIM_PREFIX] [--jitter JITTER] [--output-prefix OUTPUT_PREFIX] [--renormalize] [--save-interim SAVE_INTERIM] [--yonly] finput`
 
 The arguments are summarized in the table below.
 
 | Argument | Usage | Type | Default value |
 |----------|-------|------|---------------|
 | -h, --help | print out the help message and exit | n/a | n/a |
+| -V, --version | print dips version and exit | n/a | n/a |
 | -b BINS, --bins BINS | assign the number of synchronous pdf bins | int | 200 |
 | -t0 ORIGIN, --origin ORIGIN | the zero-point of the timeseries | float | 0.0 |
 | -P PERIOD, --period PERIOD | period of the synchronous signal | float | 1.0 |
@@ -52,10 +54,24 @@ The arguments are summarized in the table below.
 | --save-interim STEP | save intering solutions every STEP iterations | int | 0 |
 | --yonly | use only y-distance instead of full euclidian distance | bool | False |
 
-Distributed with _dips_ are three example input files, `synthetic.data`, `kic2445134_sap.data` and `kic3547874_sap.data`. For example, to run _dips_ on `kic3547874_sap.data`, issue:
+Distributed with _dips_ (in the tarball's `examples` directory) are three example input files, `synthetic.data`, `kic2445134_sap.data` and `kic3547874_sap.data`.
+
+To run _dips_ on synthetic data (see [http://keplerEBs.villanova.edu/includes/DPS/dps_synthetic.html](here) how the data were created) by using 33 bins, per-bin means as the initial pdf, and with serial calculation (disabling multiprocessing), issue:
 
 ```bash
-./dips.py -t0 54989.4209 -P 19.6921722 -b 200 --cols 0 2 --yonly --initial-pdf mean kic3547874_sap.data
+dips synthetic.data -b 33 -P 0.91 --initial-pdf mean --disable-mp
 ```
 
-The values for `t0` and `P` were taken from the [Kepler EB catalog](http://keplerEBs.villanova.edu/overview/?k=3547874).
+To run _dips_ on a heartbeat star [KIC 3547874](http://keplerEBs.villanova.edu/overview/?k=3547874), using 200 bins, starting with a flat pdf, computing total length in the y-direction only, renormalizing the synchronous pdf to 1.0 after each iteration, and allowing the step size to increase, issue:
+
+```bash
+dips kic3547874_sap.data --cols 0 2 -t0 54989.4209 -P 19.6921722 -b 200 --yonly --initial-pdf flat --renormalize --allow-upstep
+```
+
+Finally, to run _dips_ on an eclipsing binary [KIC 3953981](http://keplerEBs.villanova.edu/overview/?k=3953981), using 101 bins, allowing the step size to increase, using per-bin data median as the initial pdf, renormalizing the pdf after each iteration, using only y-direction length and saving every 10th iteration, issue:
+
+```bash
+dips kic3953981_sap.data -b 101 -t0 54953.82253243 -P 0.49201716 --allow-upstep --initial-pdf median --save-interim 10 --interim-prefix eb --renormalize --yonly
+```
+
+These examples should provide a basic idea of how to invoke _dips_.

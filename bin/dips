@@ -1,0 +1,66 @@
+#!/usr/bin/python3
+
+import argparse
+from dips import Dips
+from dips import __version__
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('finput',                   type=str,            help='input file containing time, flux and optional flux error')
+parser.add_argument('-V',   '--version',        action='version',    help='print dips version and exit', version='%(prog)s {version}'.format(version=__version__))
+parser.add_argument('-b',   '--bins',           type=int,            help='number of synchronous pdf bins', default=200)
+parser.add_argument('-t0',  '--origin',         type=float,          help='the zero-point of the time-series', default=0.0)
+parser.add_argument('-P',   '--period',         type=float,          help='period of the synchronous signal', default=1.0)
+parser.add_argument('-l',   '--logfile',        type=str,            help='log file to send output to instead of screen', default=None)
+parser.add_argument('-eta', '--tolerance',      type=float,          help='tolerance for convergence', default=1e-8)
+parser.add_argument('-dxk', '--difference',     type=float,          help='finite difference size', default=2e-5)
+parser.add_argument('-xi',  '--step-size',      type=float,          help='initial down-step multiplier', default=1e-3)
+parser.add_argument('-af',  '--attenuation',    type=float,          help='attenuation factor for xi', default=0.9)
+parser.add_argument(        '--allow-upstep',   action='store_true', help='allow step size to increase during convergence', default=False)
+parser.add_argument(        '--cols',           type=int, nargs='+', help='a list of input columns to be parsed, starting from 0', default=[0, 1])
+parser.add_argument(        '--disable-mp',     action='store_true', help='disable multiprocessing (force serial computation)', default=False)
+parser.add_argument(        '--initial-pdf',    type=str,            help='choice of pdf initialization [\'flat\', \'mean\', \'median\', \'random\', or external filename]', default='median')
+parser.add_argument(        '--interim-prefix', type=str,            help='filename prefix for interim results', default=None)
+parser.add_argument(        '--jitter',         type=float,          help='add jitter to the computed gradients', default=0.0)
+parser.add_argument(        '--output-prefix',  type=str,            help='filename prefix for saving results', default=None)
+parser.add_argument(        '--renormalize',    action='store_true', help='force pdf normalization to 1 after every iteration', default=False)
+parser.add_argument(        '--save-interim',   type=int,            help='save interim solutions every N iterations', default=0)
+parser.add_argument(        '--yonly',          action='store_true', help='use only y-distance instead of full euclidian distance', default=False)
+
+cmdargs = parser.parse_args()
+if len(cmdargs.cols) < 2 or len(cmdargs.cols) > 3:
+    raise argparse.ArgumentTypeError('only 2 or 3 columns can be passed to the --cols parameter.')
+
+dips = Dips(vars(cmdargs))
+dips.run()
+
+
+
+
+
+
+
+
+    # plt.figure(figsize=(16,15))
+    # plt.axes([0.1, 0.65, 0.8, 0.25])
+    # plt.ylabel(r'$O(t)$')
+    # plt.plot(t, O, 'b-', label='observed curve, length=%4.4f' % (length(t, O)))
+    # plt.legend(loc='lower left')
+    # plt.title('KIC 2445134')
+
+    # plt.axes([0.1, 0.4, 0.8, 0.25])
+    # plt.xlabel(r'$t$')
+    # plt.ylabel(r'$O(t)-X(t)$')
+    # plt.plot(t, O-unfold(t, t0, P, ranges, pdf), 'r-', label='asynchronous part, length=%4.4f' % (l1))
+    # plt.legend(loc='lower left')
+
+    # plt.axes([0.1, 0.08, 0.8, 0.25])
+    # plt.xlabel(r'$\Phi$')
+    # plt.ylabel(r'$X(t)$')
+    # plt.plot(0.5*(ranges[:-1]+ranges[1:]), pdf, 'r-', lw=2, label='synchronous pdf')
+    # plt.legend(loc='upper left')
+
+    # plt.savefig('dps_2445134.pdf')
+    # plt.show()
+
+
