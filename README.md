@@ -28,7 +28,7 @@ The _dips_ program is run from the command line. It takes a filename with the ti
 
 Run _dips_ with:
 
-`dips.py [-h] [-b BINS] [-t0 ORIGIN] [-P PERIOD] [-l LOGFILE] [-eta TOLERANCE] [-dxk DIFFERENCE] [-xi STEP_SIZE] [-af ATTENUATION] [--allow-upstep] [--cols COLS [COLS ...]] [--disable-mp] [--initial-pdf INITIAL_PDF] [--interim-prefix INTERIM_PREFIX] [--jitter JITTER] [--output-prefix OUTPUT_PREFIX] [--renormalize] [--save-interim SAVE_INTERIM] [--yonly] finput`
+`dips.py [-h] [-V] [-b BINS] [-t0 ORIGIN] [-P PERIOD] [-l LOGFILE] [-eta TOLERANCE] [-dxk DIFFERENCE] [-xi STEP_SIZE] [-af ATTENUATION] [--allow-upstep] [--cols COLS [COLS ...]] [--disable-mp] [--initial-pdf INITIAL_PDF] [--interim-prefix INTERIM_PREFIX] [--jitter JITTER] [--output-prefix OUTPUT_PREFIX] [--renormalize] [--save-interim SAVE_INTERIM] [--yonly] finput`
 
 The arguments are summarized in the table below.
 
