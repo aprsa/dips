@@ -22,6 +22,7 @@ parser.add_argument(        '--disable-mp',     action='store_true', help='disab
 parser.add_argument(        '--initial-pdf',    type=str,            help='choice of pdf initialization [\'flat\', \'mean\', \'median\', \'random\', or external filename]', default='median')
 parser.add_argument(        '--interim-prefix', type=str,            help='filename prefix for interim results', default=None)
 parser.add_argument(        '--jitter',         type=float,          help='add jitter to the computed gradients', default=0.0)
+parser.add_argument(        '--normalize-data', action='store_true', help='normalize input data by median-dividing the fluxes', default=False)
 parser.add_argument(        '--output-prefix',  type=str,            help='filename prefix for saving results', default=None)
 parser.add_argument(        '--renormalize',    action='store_true', help='force pdf normalization to 1 after every iteration', default=False)
 parser.add_argument(        '--save-interim',   type=int,            help='save interim solutions every N iterations', default=0)

@@ -26,6 +26,9 @@ class Dips:
         self.data = np.loadtxt(args['finput'], usecols=args['cols'])
         log.write('# input data: %d rows, %d columns read in from %s\n' % (self.data.shape[0], self.data.shape[1], args['finput']))
 
+        if args['normalize_data'] == True:
+            self.data[:,1] /= np.median(self.data[:,1])
+
         self.ranges = np.linspace(0, 1, args['bins']+1)
         self.phases = self.fold(self.data[:,0], args['origin'], args['period'])
 
@@ -93,7 +96,7 @@ class Dips:
         if self.args['save_interim'] > 0:
             interim_prefix = self.args['finput'] if self.args['interim_prefix'] is None else self.args['interim_prefix']
 
-        log.write('# %3s %14s %12s %14s %14s %14s\n' % ('it', 'async_length', 'sync_length', 'difference', 'step_size', 'mean_slope'))
+        log.write('# %3s %14s %12s %14s %14s %14s %14s\n' % ('it', 'async_length', 'sync_length', 'difference', 'step_size', 'mean_slope', 'merit'))
 
         # starting iterations
         i = 0
@@ -128,7 +131,7 @@ class Dips:
                 np.savetxt('%s.%05d.trend'  % (interim_prefix, i), np.vstack((self.data[:,0], self.data[:,1]-self.unfold(self.pdf))).T)
 
             i += 1
-            log.write('%5d %14.8f %12.8f %14.8e %14.8e %14.8e\n' % (i, l1, self.synclength(self.pdf), l0-l1, self.xi, mean_slope))
+            log.write('%5d %14.8f %12.8f %14.8e %14.8e %14.8e %14.8e\n' % (i, l1, self.synclength(self.pdf), l0-l1, self.xi, mean_slope, self.xi*mean_slope))
 
             if self.args['disable_mp']:
                 slopes = np.array([self.slope(k) for k in range(self.args['bins'])])
