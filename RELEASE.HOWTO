@@ -1,0 +1,9 @@
+* change the version number in dips/__init__.py
+* edit CHANGES.txt and add a one-line description
+* edit README.md if necessary
+* commit (and merge, if necessary) to master
+* on github, click on the Releases tab and Generate a new release
+* build the dist by running python setup.py sdist bdist_wheel
+  (if you run python setup.py install, it'll generate .egg as well)
+* upload to pypi by running `twine upload dist/*`
+* celebrate :)
