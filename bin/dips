@@ -1,8 +1,14 @@
 #!/usr/bin/python3
 
+import sys
 import argparse
 from dips import Dips
 from dips import __version__
+
+# Figure out if we're called from pre-python 3.3 or post-python-3.3. That
+# determines whether we can use multiprocessing or not.
+
+ver = sys.version_info
 
 parser = argparse.ArgumentParser()
 
@@ -18,7 +24,8 @@ parser.add_argument('-xi',  '--step-size',      type=float,          help='initi
 parser.add_argument('-af',  '--attenuation',    type=float,          help='attenuation factor for xi', default=0.9)
 parser.add_argument(        '--allow-upstep',   action='store_true', help='allow step size to increase during convergence', default=False)
 parser.add_argument(        '--cols',           type=int, nargs='+', help='a list of input columns to be parsed, starting from 0', default=[0, 1])
-parser.add_argument(        '--disable-mp',     action='store_true', help='disable multiprocessing (force serial computation)', default=False)
+if ver[0] >= 3 and ver[1] >= 3:
+    parser.add_argument(    '--disable-mp',     action='store_true', help='disable multiprocessing (force serial computation)', default=False)
 parser.add_argument(        '--initial-pdf',    type=str,            help='choice of pdf initialization [\'flat\', \'mean\', \'median\', \'random\', or external filename]', default='median')
 parser.add_argument(        '--interim-prefix', type=str,            help='filename prefix for interim results', default=None)
 parser.add_argument(        '--jitter',         type=float,          help='add jitter to the computed gradients', default=0.0)
@@ -27,6 +34,9 @@ parser.add_argument(        '--output-prefix',  type=str,            help='filen
 parser.add_argument(        '--renormalize',    action='store_true', help='force pdf normalization to 1 after every iteration', default=False)
 parser.add_argument(        '--save-interim',   type=int,            help='save interim solutions every N iterations', default=0)
 parser.add_argument(        '--yonly',          action='store_true', help='use only y-distance instead of full euclidian distance', default=False)
+
+# parser.add_argument(        '--mode',           type=str,            help='mode of operation: unfold, else', default=None)
+# parser.add_argument(        '--stdev',          type=float,          help='standard deviation of the resulting timeseries', default=0.01)
 
 cmdargs = parser.parse_args()
 if len(cmdargs.cols) < 2 or len(cmdargs.cols) > 3:

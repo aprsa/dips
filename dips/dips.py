@@ -1,16 +1,41 @@
-import os
+"""
+dips: detrending periodic signals
+"""
+
 import sys
+import multiprocessing as mp
+
 import numpy as np
 # import matplotlib as mpl
 # import matplotlib.pyplot as plt
 from scipy.interpolate import InterpolatedUnivariateSpline as interp
 from scipy.stats import binned_statistic as hstats
-import multiprocessing as mp
 
-class Dips:
+class Dips(object):
+    """
+    The main Dips class that exists so that the dips namespace is clean on both POSIX
+    and non-POSIX systems.
+    """
+
     def __init__(self, args):
         self.args = args
-        
+
+        # TODO: the following block is commented out for further polish.
+        # if mode is unfold, then we only need to do that and we're done.
+        # if args['mode'] == 'unfold':
+        #     self.data = np.loadtxt(args['finput'], usecols=args['cols'])
+        #     self.pdf = np.loadtxt(args['initial_pdf'], usecols=(1,))
+        #     self.ranges = np.linspace(0, 1, args['bins']+1)
+        #     self.phases = self.fold(self.data[:,0], args['origin'], args['period'])
+        #     fluxes = self.unfold(self.pdf) + np.random.normal(0.0, args['stdev'], len(self.data[:,0]))
+        #     np.savetxt('test', np.vstack((self.data[:,0], fluxes, np.ones(len(fluxes))*args['stdev'])).T)
+        #     exit()
+
+        # if args['disable_mp'] exists, that means multiprocessing is available.
+        # if it doesn't exist, we manually add it here.
+        if 'disable_mp' not in args.keys():
+            args['disable_mp'] = True
+
         # this parameter changes so expose it to the class explicitly:
         self.xi = args['step_size']
 
@@ -26,10 +51,11 @@ class Dips:
         self.data = np.loadtxt(args['finput'], usecols=args['cols'])
         log.write('# input data: %d rows, %d columns read in from %s\n' % (self.data.shape[0], self.data.shape[1], args['finput']))
 
-        if args['normalize_data'] == True:
+        if args['normalize_data']:
             self.data[:,1] /= np.median(self.data[:,1])
 
         self.ranges = np.linspace(0, 1, args['bins']+1)
+        self.bin_centers = (self.ranges[1:]+self.ranges[:-1])/2
         self.phases = self.fold(self.data[:,0], args['origin'], args['period'])
 
         log.write('# initial pdf source: %s\n' % args['initial_pdf'])
@@ -41,14 +67,14 @@ class Dips:
             self.pdf = hstats(x=self.phases, values=self.data[:,1], statistic='median', bins=args['bins'], range=(0, 1))[0]
         elif args['initial_pdf'] == 'random':
             means = hstats(x=self.phases, values=self.data[:,1], statistic='mean', bins=args['bins'], range=(0, 1))[0]
-            stds  = hstats(x=self.phases, values=self.data[:,1], statistic='std', bins=args['bins'], range=(0, 1))[0]
+            stds = hstats(x=self.phases, values=self.data[:,1], statistic='std', bins=args['bins'], range=(0, 1))[0]
             self.pdf = np.random.normal(means, stds)
         else:
             self.pdf = np.loadtxt(args['initial_pdf'], usecols=(1,))
             if len(self.pdf) != args['bins']:
                 log.write('#   rebinning the input pdf from %d to %d\n' % (len(self.pdf), args['bins']))
-                r = np.linspace(0, 1, len(self.pdf)+1)
-                self.pdf = np.interp((self.ranges[1:]+self.ranges[:-1])/2, (r[1:]+r[:-1])/2, self.pdf)
+                old_ranges = np.linspace(0, 1, len(self.pdf)+1)
+                self.pdf = np.interp(self.bin_centers, (old_ranges[1:]+old_ranges[:-1])/2, self.pdf)
 
         log.write('# number of requested pdf bins: %d\n' % args['bins'])
 
@@ -68,9 +94,9 @@ class Dips:
         # plt.bar(0.5*(self.ranges[:-1]+self.ranges[1:]), self.pdf, width=1./args['bins'], color='yellow', edgecolor='black', zorder=10, alpha=0.4)
         # plt.show()
 
-        Y = self.data[:,1] - self.unfold(self.pdf)
+        resids = self.data[:,1] - self.unfold(self.pdf)
         log.write('# original timeseries length:  %f\n' % self.length(self.data[:,0], self.data[:,1]))
-        log.write('# initial asynchronous length: %f\n# \n' % self.length(self.data[:,0], Y))
+        log.write('# initial asynchronous length: %f\n# \n' % self.length(self.data[:,0], resids))
 
         log.write('# computational parameters:\n')
         log.write('#   tolerance (tol):  %6.2e\n' % args['tolerance'])
@@ -154,19 +180,19 @@ class Dips:
         return ((t-t0) % P) / P
 
     def unfold(self, pdf):
-        return interp(0.5*(self.ranges[1:]+self.ranges[:-1]), pdf, k=3)(self.phases)
+        return interp(self.bin_centers, pdf, k=3)(self.phases)
 
     def length(self, t, y):
         if self.args['yonly']:
             return np.abs(y[1:]-y[:-1]).sum()
         else:
-            return ( ( (y[1:]-y[:-1])**2 + (t[1:]-t[:-1])**2 )**0.5 ).sum()
+            return (((y[1:]-y[:-1])**2 + (t[1:]-t[:-1])**2)**0.5).sum()
 
     def synclength(self, pdf):
         if self.args['yonly']:
             return np.abs(pdf[1:]-pdf[:-1]).sum()
         else:
-            return ( ( (pdf[1:]-pdf[:-1])**2 + (1./len(pdf))**2 )**0.5 ).sum()
+            return (((pdf[1:]-pdf[:-1])**2 + (1./len(pdf))**2)**0.5).sum()
 
     def slope(self, k):
         x = self.pdf.copy()
@@ -178,4 +204,3 @@ class Dips:
             return (l2-l1)/self.args['difference']
         else:
             return np.random.normal((l2-l1)/self.args['difference'], self.args['jitter']*np.abs((l2-l1)/self.args['difference']))
-
