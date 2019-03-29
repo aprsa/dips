@@ -54,9 +54,10 @@ class Dips(object):
         if args['normalize_data']:
             self.data[:,1] /= np.median(self.data[:,1])
 
+        # phased signal containers:
         self.ranges = np.linspace(0, 1, args['bins']+1)
         self.bin_centers = (self.ranges[1:]+self.ranges[:-1])/2
-        self.phases = self.fold(self.data[:,0], args['origin'], args['period'])
+        self.phases = self.fold(self.data[:,0], args['origin'] + args['phase_shift']*args['period'], args['period'])
 
         log.write('# initial pdf source: %s\n' % args['initial_pdf'])
         if args['initial_pdf'] == 'flat':
@@ -81,6 +82,14 @@ class Dips(object):
         nelems_per_bin, _ = np.histogram(self.phases, bins=args['bins'])
         log.write('# number of observations per bin:\n')
         log.write('#   min: %d   max: %d   mean: %d\n# \n' % (nelems_per_bin.min(), nelems_per_bin.max(), nelems_per_bin.mean()))
+
+        self.k = args['interp_order']
+        log.write('# intra-pixel interpolation order: %d\n' % self.k)
+
+        # As we are interpolating across bin centers, we need to pad our arrays to assure wrapping at the phase space edges.
+        # The longer the aliased part, the stronger the wrapping constraint. We are using 3*k for good measure. Bin centers
+        # don't change so we compute them here; pdf does change so we compute padding in the unfold() function.
+        self.aliased_bin_centers = np.pad(self.bin_centers, (3*self.k, 3*self.k), 'reflect', reflect_type='odd')
 
         nprocs = 1 if args['disable_mp'] else mp.cpu_count()
         log.write('# dips running on %d %s (multiprocessing %s)\n# \n' % (nprocs, 'core' if nprocs == 1 else 'cores', 'off' if args['disable_mp'] else 'on'))
@@ -180,7 +189,8 @@ class Dips(object):
         return ((t-t0) % P) / P
 
     def unfold(self, pdf):
-        return interp(self.bin_centers, pdf, k=3)(self.phases)
+        aliased_pdf = np.pad(pdf, (3*self.k, 3*self.k), 'wrap')
+        return interp(self.aliased_bin_centers, aliased_pdf, k=self.k)(self.phases)
 
     def length(self, t, y):
         if self.args['yonly']:
