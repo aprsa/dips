@@ -51,6 +51,9 @@ class Dips(object):
         self.data = np.loadtxt(args['finput'], usecols=args['cols'])
         log.write('# input data: %d rows, %d columns read in from %s\n' % (self.data.shape[0], self.data.shape[1], args['finput']))
 
+        if args['phase_shift'] != 0:
+            log.write('# phased data shifted by %2.2f' % (args['phase_shift']))
+
         if args['normalize_data']:
             self.data[:,1] /= np.median(self.data[:,1])
 
@@ -85,6 +88,7 @@ class Dips(object):
 
         self.k = args['interp_order']
         log.write('# intra-pixel interpolation order: %d\n' % self.k)
+        log.write('# pdf/range aliased bins: %d\n\n' % (3*self.k))
 
         # As we are interpolating across bin centers, we need to pad our arrays to assure wrapping at the phase space edges.
         # The longer the aliased part, the stronger the wrapping constraint. We are using 3*k for good measure. Bin centers

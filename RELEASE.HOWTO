@@ -4,6 +4,7 @@
 * commit (and merge, if necessary) to master
 * on github, click on the Releases tab and Generate a new release
 * build the dist by running python setup.py sdist bdist_wheel
-  (if you run python setup.py install, it'll generate .egg as well)
-* upload to pypi by running `twine upload dist/*`
+  (if you run python3 setup.py install, it'll generate .egg as well)
+  (if you run python instead of python3, it'll generate python 2 stuff as well)
+* upload to pypi by running `twine upload dist/*` (use the long password)
 * celebrate :)
